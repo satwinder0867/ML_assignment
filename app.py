@@ -37,8 +37,10 @@ st.markdown("---")
 # --------------------------------------------------
 # Model Selection
 # --------------------------------------------------
+st.subheader("🤖 Model Selection")
+
 model_option = st.selectbox(
-    "🔽 Select a Model",
+    "Select a Machine Learning Model",
     [
         "Logistic Regression",
         "Decision Tree",
@@ -60,22 +62,45 @@ model_paths = {
 
 model = joblib.load(model_paths[model_option])
 
+st.markdown("---")
+
 # --------------------------------------------------
-# Dataset Upload
+# Dataset Source Selection
 # --------------------------------------------------
-uploaded_file = st.file_uploader(
-    "📂 Upload Test Dataset (CSV)",
-    type=["csv"]
+st.subheader("📁 Dataset Source")
+
+data_source = st.radio(
+    "Choose how you want to provide the test dataset:",
+    (
+        "Use default test dataset (from repository)",
+        "Upload custom test dataset (CSV)"
+    )
 )
 
-if uploaded_file is not None:
-    data = pd.read_csv(uploaded_file)
+data = None
 
-    # Dataset preview (optional but professional)
-    with st.expander("🔍 Preview Uploaded Dataset"):
+if data_source == "Use default test dataset (from repository)":
+    st.info("Using default test dataset available in the repository.")
+    data = pd.read_csv("data/credit_card_test.csv")
+
+elif data_source == "Upload custom test dataset (CSV)":
+    uploaded_file = st.file_uploader(
+        "Upload Test Dataset (CSV)",
+        type=["csv"]
+    )
+    if uploaded_file is not None:
+        data = pd.read_csv(uploaded_file)
+
+# --------------------------------------------------
+# Prediction & Evaluation
+# --------------------------------------------------
+if data is not None:
+
+    # Dataset preview
+    with st.expander("🔍 Preview Dataset"):
         st.dataframe(data.head())
 
-    # Split features & target
+    # Feature / target split
     X = data.drop("default payment next month", axis=1)
     y = data["default payment next month"]
 
@@ -100,37 +125,38 @@ if uploaded_file is not None:
     col6.metric("MCC", f"{matthews_corrcoef(y, y_pred):.2f}")
 
     # --------------------------------------------------
-    # Model Insight (Very Important for ML Understanding)
+    # Model Insight
     # --------------------------------------------------
     st.markdown("### 🧠 Model Insight")
 
     if model_option == "Naive Bayes":
         st.info(
-            "Naive Bayes tends to predict the majority class due to class imbalance. "
-            "This results in reasonable accuracy but poor recall for defaulters."
+            "Naive Bayes often predicts the majority class due to class imbalance, "
+            "leading to reasonable accuracy but low recall for defaulters."
         )
     elif model_option == "Logistic Regression":
         st.info(
-            "Logistic Regression serves as a strong baseline model but struggles "
-            "to capture complex non-linear patterns."
+            "Logistic Regression provides a strong baseline but struggles with "
+            "complex non-linear patterns."
         )
     elif model_option == "Decision Tree":
         st.info(
-            "Decision Trees capture non-linearity well but are prone to overfitting."
+            "Decision Trees capture non-linearity but are prone to overfitting."
         )
     elif model_option == "KNN":
         st.info(
-            "KNN provides balanced performance but is sensitive to feature scaling "
-            "and computationally expensive."
+            "KNN offers balanced performance but is sensitive to scaling and "
+            "computationally expensive."
         )
     elif model_option == "Random Forest":
         st.success(
-            "Random Forest benefits from ensemble averaging and provides stable performance."
+            "Random Forest benefits from ensemble learning and provides "
+            "stable, robust performance."
         )
     elif model_option == "XGBoost":
         st.success(
-            "XGBoost delivers the best overall trade-off between precision, recall, "
-            "and AUC due to boosting and regularization."
+            "XGBoost delivers the best overall trade-off between metrics due "
+            "to boosting and regularization."
         )
 
     st.markdown("---")
